@@ -1,7 +1,7 @@
 <template>
   <q-page class="flex flex-center">
     <div class="todo-lista">
-      <AppLogo :src="logoPath" /> 
+      <Logo :src="logoPath" />
       <h1>Tvoja To-Do lista</h1>
 
       <q-input
@@ -27,10 +27,9 @@
         <TaskList
           v-for="(task, index) in tasks"
           :key="index"
-          :task="task"
+          v-model:task="tasks[index]"
           :index="index"
-          @obrisi="obrisi" 
-          @update-task="updateTask"  
+          @obrisi="obrisi"
         />
       </q-list>
     </div>
@@ -38,12 +37,12 @@
 </template>
 
 <script>
-import AppLogo from '../components/AppLogo.vue'; 
+import Logo from '../components/AppLogo.vue';
 import TaskList from '../components/TaskList.vue';
 
 export default {
   components: {
-    AppLogo,  
+    Logo,
     TaskList
   },
   data() {
@@ -51,22 +50,22 @@ export default {
       novi: "",
       noviDatum: "",
       tasks: [],
-      logoPath: '/logo.png',
+      logoPath: '/logo.png'
     };
   },
   mounted() {
     setTimeout(() => {
-      this.logoPath = '/done.png';  // Test promjena loga nakon 3 sekunde jel svge oke
+      this.logoPath = '/done.png';
     }, 3000);
   },
   methods: {
-    dodaj() {           
+    dodaj() {
       if (this.novi.trim()) {
         const danas = new Date();
         const defaultni = new Date(danas);
-        defaultni.setDate(defaultni.getDate() + 3); // Defaultni datum za 3 dana ako ne unesemo datum
+        defaultni.setDate(defaultni.getDate() + 3);
         const datumFormat = this.formatDate(this.noviDatum || defaultni);
-        
+
         this.tasks.push({
           text: this.novi,
           completed: false,
@@ -78,19 +77,53 @@ export default {
       }
     },
     obrisi(index) {
-      this.tasks.splice(index, 1);  
-    },
-    updateTask({ index, completed }) {
-      
-      this.tasks[index].completed = completed;
+      this.tasks.splice(index, 1);
     },
     formatDate(date) {
       const d = new Date(date);
-      const day = ("0" + d.getDate()).slice(-2); 
-      const month = ("0" + (d.getMonth() + 1)).slice(-2); 
+      const day = ("0" + d.getDate()).slice(-2);
+      const month = ("0" + (d.getMonth() + 1)).slice(-2);
       const year = d.getFullYear();
       return `${day}/${month}/${year}`;
     }
-  },
+  }
 };
 </script>
+
+<style scoped>
+html, body {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
+.todo-lista {
+  max-width: 600px;
+  margin: 0;
+  text-align: center;
+}
+
+.zadatak {
+  margin-bottom: 20px;
+  font-size: 17px;
+}
+
+.h1 {
+  display: inline;
+  font-size: 24px;
+  margin: 0;
+}
+
+.q-page {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.q-list {
+  margin-top: 20px;
+  flex-grow: 1;
+}
+</style>
