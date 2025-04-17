@@ -13,6 +13,33 @@
         outlined
       />
 
+      <q-btn
+        dense
+        flat
+        icon="add"
+        label="Dodatne opcije"
+        @click="pokaziOpcije = !pokaziOpcije"
+        class="dodaj"
+      />
+
+      <div v-show="pokaziOpcije" class="dodatno">
+        <q-input
+          v-model="opis"
+          type="textarea"
+          label="Opis"
+          outlined
+          class="dodaj"
+        />
+
+        <q-select
+          v-model="prioritet"
+          :options="['Visok', 'Srednji', 'Nizak']"
+          label="Prioritet"
+          outlined
+          class="dodaj"
+        />
+      </div>
+
       <q-input
         v-model="noviDatum"
         type="date"
@@ -27,11 +54,16 @@
         <TaskList
           v-for="(task, index) in tasks"
           :key="index"
-          v-model:task="tasks[index]"
+          :task="task"
           :index="index"
           @obrisi="obrisi"
+          @toggle-completed="toggleCompleted"
         />
       </q-list>
+
+      <SkladisteZavrseno
+        :completedTasks="completedTasks"
+      />
     </div>
   </q-page>
 </template>
@@ -39,24 +71,25 @@
 <script>
 import Logo from '../components/AppLogo.vue';
 import TaskList from '../components/TaskList.vue';
+import SkladisteZavrseno from '../components/SkladisteZavrseno.vue';
 
 export default {
   components: {
     Logo,
-    TaskList
+    TaskList,
+    SkladisteZavrseno,
   },
   data() {
     return {
       novi: "",
       noviDatum: "",
+      opis: "",
+      prioritet: "",
+      pokaziOpcije: false,
       tasks: [],
-      logoPath: '/logo.png'
+      completedTasks: [],
+      logoPath: '/logo.png',
     };
-  },
-  mounted() {
-    setTimeout(() => {
-      this.logoPath = '/done.png';
-    }, 3000);
   },
   methods: {
     dodaj() {
@@ -69,15 +102,44 @@ export default {
         this.tasks.push({
           text: this.novi,
           completed: false,
-          dueDate: datumFormat
+          dueDate: datumFormat,
+          opis: this.opis,
+          prioritet: this.prioritet,
+          izvrsenoDana: null // jer inace pokazuje datum pocetni kao
         });
 
         this.novi = "";
         this.noviDatum = "";
+        this.opis = "";
+        this.prioritet = "";
+        this.pokaziOpcije = false;
       }
     },
     obrisi(index) {
       this.tasks.splice(index, 1);
+    },
+    toggleCompleted(index) {
+      const task = this.tasks[index];
+
+      task.completed = !task.completed;
+
+      if (task.completed) {
+    
+        const danas = new Date();
+        const dan = ("0" + danas.getDate()).slice(-2);
+        const mjesec = ("0" + (danas.getMonth() + 1)).slice(-2);
+        const godina = danas.getFullYear();
+        task.izvrsenoDana = `${dan}/${mjesec}/${godina}`;
+
+        // Za premjestit zadatak kad se klikne checkbox zavrseno u moje skladiste
+        this.completedTasks.push(task); //makni s popisa todo
+      } else {
+        task.izvrsenoDana = null;
+        
+        
+        this.tasks.push(task);
+        this.completedTasks.splice(index, 1); 
+      }
     },
     formatDate(date) {
       const d = new Date(date);
@@ -86,17 +148,11 @@ export default {
       const year = d.getFullYear();
       return `${day}/${month}/${year}`;
     }
-  }
+  },
 };
 </script>
 
 <style scoped>
-html, body {
-  height: 100%;
-  margin: 0;
-  overflow: hidden;
-}
-
 .todo-lista {
   max-width: 600px;
   margin: 0;
@@ -106,12 +162,6 @@ html, body {
 .zadatak {
   margin-bottom: 20px;
   font-size: 17px;
-}
-
-.h1 {
-  display: inline;
-  font-size: 24px;
-  margin: 0;
 }
 
 .q-page {
@@ -125,5 +175,10 @@ html, body {
 .q-list {
   margin-top: 20px;
   flex-grow: 1;
+}
+
+.dodatno {
+  display: flex;
+  flex-direction: column;
 }
 </style>
